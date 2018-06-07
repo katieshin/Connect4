@@ -1,6 +1,13 @@
 package net.connect4;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Scanner;
+
+import gnu.prolog.vm.PrologException;
 
 public class Connect4 {
 
@@ -8,13 +15,44 @@ public class Connect4 {
 
 	
 	
-	public static void main(String[] args){
+	public static void main(String[] args) throws PrologException, IOException, InterruptedException{
 		
 		Board b = new Board(6, 7);
 		
-		Scanner input = new Scanner(System.in);
+//		Scanner input = new Scanner(System.in);
 		
-		a:while(true){
+		final Process swi = new ProcessBuilder("swipl", "--quiet").start();
+		
+		new Thread(() -> {
+            BufferedReader ir = new BufferedReader(new InputStreamReader(swi.getInputStream()));
+            String line = null;
+            try {
+                while(true){
+                	line = ir.readLine();
+                    if(line!=null) System.out.printf("%s\n", line);
+                }
+            } catch(IOException e) {}
+        }).start();
+		
+		final Scanner sc = new Scanner(System.in);
+		final BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
+		final String newLine = System.getProperty("line.separator");
+		while(true){
+			String c = sc.nextLine();
+			bf.write(c);
+			bf.newLine();
+			bf.flush();
+		}
+		
+		/*BufferedReader out = new BufferedReader(new InputStreamReader(swi.getInputStream()));
+		
+		String line;
+		while(swi.isAlive()){
+			line = out.readLine();
+			if(line!=null) System.out.print(line);
+		}*/
+		
+		/*a:while(true){
 			System.out.println(b+"\n");
 			System.out.print("Enter Next Column (or q to quit):");
 
@@ -35,7 +73,7 @@ public class Connect4 {
 			}
 		}
 		
-		input.close();
+		input.close();*/
 		
 	}
 	
