@@ -4,13 +4,14 @@ name("Joshua", "Smith", "jas790").
 
 
 % addPieceToColumn(+Column, +Player, -OutputColumn)
-addPieceToColumn([E|C], Player, [E2|OC]) :- E = 0, E2 = Player.
-addPieceToColumn([E|C], Player, [_|OC]) :- E != 0, addPieceToColumn(C, Player, OC).
+addPieceToColumn([], _, []).
+addPieceToColumn([E|C], Player, [E2|OC]) :- E = 0, E2 = Player, C=OC.
+addPieceToColumn([E|C], Player, [E2|OC]) :- E = E2, \+E=0, addPieceToColumn(C, Player, OC).
 
 
 % addPiece(+InputBoard, +ColumnNumber, +Player, -ResultBoard)
-addPiece(InputBoard, Cnum, Player, ResultBoard) :- nth0(Cnum, InputBoard, C), nth0(Cnum, ResultBoard, D),
-                                                   addPieceToColumn(C, Player, D).
+addPiece([C|Rest], 0, Player, [D|Rest]) :- addPieceToColumn(C, Player, D).
+addPiece([C|Board], CNum, Player, [C|Result]) :- \+CNum=0, D is CNum-1, addPiece(Board, D, Player, Result).
 
 
 % canWin(+Board, ?ColumnNumber)

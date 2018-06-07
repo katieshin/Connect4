@@ -21,7 +21,9 @@ public class Connect4 {
 		
 //		Scanner input = new Scanner(System.in);
 		
-		final Process swi = new ProcessBuilder("swipl", "--quiet").start();
+		final Process swi = new ProcessBuilder("swipl", "-s", "src/net/connect4/Connect4Logic.pl").start();
+		
+		swi.getInputStream();
 		
 		new Thread(() -> {
             BufferedReader ir = new BufferedReader(new InputStreamReader(swi.getInputStream()));
@@ -37,12 +39,36 @@ public class Connect4 {
 		final Scanner sc = new Scanner(System.in);
 		final BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
 		final String newLine = System.getProperty("line.separator");
+		
+		sc.nextLine();
+		
+		System.out.println("HI");
+
+		Thread.sleep(1000);
+
+		System.out.println("HI");
+		
+		bf.write("addPiece([[0,0,0],[0,0,0],[0,0,0]], 2, a, B).\n");
+		bf.newLine();
+		bf.flush();
+		
+		Thread.sleep(1000);
+
+		System.out.println("HI");
+		
+		bf.write("halt.\n");
+		bf.newLine();
+		bf.flush();
+		
+		/*final Scanner sc = new Scanner(System.in);
+		final BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
+		final String newLine = System.getProperty("line.separator");
 		while(true){
 			String c = sc.nextLine();
 			bf.write(c);
 			bf.newLine();
 			bf.flush();
-		}
+		}*/
 		
 		/*BufferedReader out = new BufferedReader(new InputStreamReader(swi.getInputStream()));
 		
