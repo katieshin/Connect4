@@ -1,158 +1,80 @@
 package net.connect4;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.Scanner;
-
-import gnu.prolog.vm.PrologException;
 
 public class Connect4 {
 
+	//So you can't instance the Connect4 class
 	private Connect4(){}
-
 	
 	
-	public static void main(String[] args) throws PrologException, IOException, InterruptedException{
+	public static void main(String[] args) throws IOException, InterruptedException{
 		
-		Board b = new Board(6, 7);
+		//Stores the game's instance
+		Board board = new Board(6, 7);
+		Player[] players = new Player[2];
 		
-//		Scanner input = new Scanner(System.in);
+		Scanner input = new Scanner(System.in);
 		
-		final Process swi = new ProcessBuilder("swipl", "-s", "src/net/connect4/Connect4Logic.pl").start();
 		
-		swi.getInputStream();
-		
-		new Thread(() -> {
-            BufferedReader ir = new BufferedReader(new InputStreamReader(swi.getInputStream()));
-            String line = null;
-            try {
-                while(true){
-                	line = ir.readLine();
-                    if(line!=null) System.out.printf("%s\n", line);
-                }
-            } catch(IOException e) {}
-        }).start();
-		
-		final Scanner sc = new Scanner(System.in);
-		final BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
-		final String newLine = System.getProperty("line.separator");
-		
-		sc.nextLine();
-		
-		System.out.println("HI");
-
-		Thread.sleep(1000);
-
-		System.out.println("HI");
-		
-		bf.write("addPiece([[0,0,0],[0,0,0],[0,0,0]], 2, a, B).\n");
-		bf.newLine();
-		bf.flush();
-		
-		Thread.sleep(1000);
-
-		System.out.println("HI");
-		
-		bf.write("halt.\n");
-		bf.newLine();
-		bf.flush();
-		
-		/*final Scanner sc = new Scanner(System.in);
-		final BufferedWriter bf = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
-		final String newLine = System.getProperty("line.separator");
-		while(true){
-			String c = sc.nextLine();
-			bf.write(c);
-			bf.newLine();
-			bf.flush();
-		}*/
-		
-		/*BufferedReader out = new BufferedReader(new InputStreamReader(swi.getInputStream()));
-		
-		String line;
-		while(swi.isAlive()){
-			line = out.readLine();
-			if(line!=null) System.out.print(line);
-		}*/
-		
-		/*a:while(true){
-			System.out.println(b+"\n");
-			System.out.print("Enter Next Column (or q to quit):");
-
-			int column = 0;
+		for(int i=0, numAI=0; i<players.length; i++){
+			System.out.print("Is player #"+(i+1)+" a human or AI?");
+			String response;
 			while(true){
-				try{
-					String cmd = input.next();
-					
-					if(cmd.equalsIgnoreCase("q")) break a;
-					
-					column = Integer.parseInt(cmd);
-					b.addPiece(column, '*');
-				}catch(NumberFormatException | ArrayIndexOutOfBoundsException e){
-					System.out.print("Sorry, that is not a valid input:");
-					continue;
+				response = input.nextLine();
+				if(response.equalsIgnoreCase("human") || response.equalsIgnoreCase("h")){
+					System.out.print("Please enter your name:");
+					String name = input.nextLine();
+					players[i] = new Player.HumanPlayer(name==null || name.equals("") ? "player #"+(i+1) : name, i==0?'*':i==1?'#':(""+i).charAt(0));
+					break;
+				}else if(response.equalsIgnoreCase("AI")){
+					String name = numAI==0 ? "God-Like AI of DOOM" : numAI==1 ? "God-Like AI of DISPAIR" : "God-Like AI #"+(numAI+1);
+					players[i] = new Player.GodlikePrologAIOfDoom(name, i==0?'*':i==1?'#':(""+i).charAt(0));
+					numAI++;
+					break;
+				}else{
+					System.out.print("Sorry, did not understand your response. Input \"human\" for a human player or \"AI\" for an AI:");
 				}
-				break;
 			}
 		}
-		
-		input.close();*/
-		
-	}
-	
-	public static class Board {
-		
-		private char[][] board;
 
-		private Board(int width, int height){
-			board = new char[width][height];
-			for(int i=0; i<width; i++){
-				for(int j=0; j<height; j++){
-					board[i][j] = ' ';
-				}
-			}
-		}		
-		
-		public int width(){
-			return board.length;
-		}
-		
-		public int height(){
-			return board[0].length;
-		}
-		
-		public void addPiece(int column, char piece){
-			//find the top of the stack in the given column
-			for(int j=0; j<height(); j++){
-				if(board[column][j]==' '){
-					board[column][j] = piece;
-					return;
-				}
-			}
+		int currentPlayer = 0;		
+		while(board.getWinner()==null && !board.full()){
+			System.out.println(board);
+			int nextColumn = players[currentPlayer].pickColumnToPlay(board);
 			
-			throw new ArrayIndexOutOfBoundsException("Sorry, that row is full");
-		}
-		
-		@Override
-		public String toString(){
-			String s = "";
-			for(int j=height()-1; j>=0; j--) {
-				s+="|";
-				for(int i=0; i<width(); i++) {
-					s+=board[i][j]+"|";
+			if(nextColumn==-1){
+				System.out.println("Quitting");
+				input.close();
+				System.exit(0);
+			}else if(nextColumn<0 || nextColumn>=board.width()){
+				//out of range
+				System.out.println("Sorry, that column is out of range. Please enter a different column:");
+			}else{
+				if(!board.addPiece(nextColumn, players[currentPlayer].token)){
+					System.out.println("Sorry, that column is full. Please enter a different column:");
+				}else{
+					currentPlayer++;
+					currentPlayer%=players.length;
 				}
-				if(j>0) s+="\n";
 			}
-			return s;
+		}
+
+		System.out.println(board);
+		
+		if(board.full()){
+			System.out.println("\nCongrats!");
+			System.out.println("Your long fought and gruelling battle ended in a tie!");
+		}else{
+			System.out.println("\nCongrats!");
+			System.out.println(players[(currentPlayer-1+players.length)%players.length].name+" won!");
 		}		
+
+		input.close();
+		System.exit(0);
 		
 	}
-	
-	
-	
 	
 	
 }
