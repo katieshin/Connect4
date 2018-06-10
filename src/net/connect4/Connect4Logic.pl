@@ -85,19 +85,17 @@ opponentWin(Board, Player) :-
 
 
 % canForceWin(+Board, ?ColumnNumber)
-canForceWin(Board, CNum, Player, Result) :-
-	checkWin(Board, 0, Player),
-	Result = true.
-canForceWin(Board, CNum, Player, Result) :-
+canForceWin(Board, CNum, Player) :-
+	checkWin(Board, 0, Player).
+canForceWin(Board, CNum, Player) :-
 	\+isBoardFull(Board),
 	addPiece(Board, CNum, Player, ResultBoard),
-	checkWin(ResultBoard, 0, Player),
-	Result = true.
-canForceWin(Board, CNum, Player, Result) :-
+	checkWin(ResultBoard, 0, Player).
+canForceWin(Board, CNum, Player) :-
 	\+isBoardFull(Board),
 	addPiece(Board, CNum, Player, ResultBoard),
 	index(NewCNum), otherPlayer(Player, Opponent),
 	addPiece(ResultBoard, NewCNum, Opponent, ResultBoard2),
 	\+opponentWin(ResultBoard2, Player),
 	index(NewCNum2),
-	canForceWin(ResultBoard2, NewCNum2, Player, Result).
+	canForceWin(ResultBoard2, NewCNum2, Player).
