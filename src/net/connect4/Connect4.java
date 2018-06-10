@@ -46,8 +46,8 @@ public class Connect4 {
 			
 			if(nextColumn==-1){
 				System.out.println("Quitting");
-				input.close();
-				System.exit(0);
+				currentPlayer=-1;
+				break;
 			}else if(nextColumn<0 || nextColumn>=board.width()){
 				//out of range
 				System.out.println("Sorry, that column is out of range. Please enter a different column:");
@@ -61,9 +61,13 @@ public class Connect4 {
 			}
 		}
 
+		
+		
 		System.out.println(board);
 		
-		if(board.full()){
+		if(currentPlayer==-1){
+			
+		}else if(board.full()){
 			System.out.println("\nCongrats!");
 			System.out.println("Your long fought and gruelling battle ended in a tie!");
 		}else{
@@ -72,6 +76,9 @@ public class Connect4 {
 		}		
 
 		input.close();
+		for(int i=0; i<players.length; i++){
+			players[i].destroy();
+		}
 		System.exit(0);
 		
 	}

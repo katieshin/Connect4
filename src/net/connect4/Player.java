@@ -34,6 +34,11 @@ public abstract class Player {
 	public abstract int pickColumnToPlay(Board gameState);
 	
 	/**
+	 * Releases all resources used by this player
+	 */
+	public abstract void destroy();
+	
+	/**
 	 * A Human Connect4 player playing from the console.
 	 *
 	 */
@@ -83,7 +88,12 @@ public abstract class Player {
 		protected void finalize(){
 			//'cause resource leaks are bad
 			input.close();
-		}		
+		}
+
+		@Override
+		public void destroy(){
+			finalize();
+		}
 		
 	}
 	
@@ -96,12 +106,15 @@ public abstract class Player {
 	 */
 	public static class GodlikePrologAIOfDoom extends Player {
 
+		private static final Object LOCK = 0;
+		
 		private final Process swi;
 		private final BufferedWriter swiInput;
 		private final Thread swiOutputThread;
 		private final Stack<String> swiOutput;
 		
 		private volatile boolean running;
+		private volatile boolean thinking;
 		
 		public GodlikePrologAIOfDoom(String name, char token) throws IOException{
 			super(name, token);
@@ -111,22 +124,38 @@ public abstract class Player {
 			swiInput = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
 			swiOutput = new Stack<String>();
 			swiOutputThread = new Thread(() -> {
+				//create an object to watch for output from swi
 				BufferedReader ir = new BufferedReader(new InputStreamReader(swi.getInputStream()));
 	            String line = null;
+	            
 	            try{
-	                while(running){
-	                	line = ir.readLine();
-	                    if(line!=null){
-	                    	synchronized(swiOutput){
-	                    		while(line!=null){
-		                    		swiOutput.push(line);
-		                    		line = ir.readLine();
-	                    		}
-	                    	}
-                    		GodlikePrologAIOfDoom.this.notify();
-	                    }
+	            	//while there is output to be read
+	            	while(swi.isAlive()){
+	            		
+	            		//get the next line of output
+	            		line = ir.readLine();
+	            		
+	            		//if that output is meaningful (yes, the length 0 stuff is important)
+	            		if(line!=null && line.trim().length()>0) {
+	            			
+	            			//add the output to the stack
+	            			synchronized(swiOutput){
+	            				swiOutput.push(line);
+	            			}
+	            			
+	            			//unlock the main thread if it is waiting
+	            			if(thinking){
+	            				synchronized(LOCK){
+	            					thinking = false;
+	            					LOCK.notifyAll();
+	            				}
+	            			}
+	            		}
 	                }
-	            } catch(IOException e){}
+	            }catch(IOException e){
+	            	//something done borked
+	            	e.printStackTrace();
+	            }
 			});
 			swiOutputThread.start();
 		}
@@ -148,7 +177,7 @@ public abstract class Player {
 				}else{
 					//try to parse swi's column output
 					try{
-						int column = Integer.parseInt(response.substring(response.indexOf('=')+1, response.length()-1));
+						int column = Integer.parseInt(response.substring(response.indexOf('=')+2, response.length()-1).trim());
 						System.out.println(name+" picks column #"+column+". Your move ;-)");
 						return column;
 					}catch(NumberFormatException e){
@@ -160,34 +189,53 @@ public abstract class Player {
 			
 		}
 		
+		/**
+		 * Runs a Prolog query and waits for the output
+		 * 
+		 * @param query
+		 * @return the first result of the query
+		 */
 		private String querySWI(String query){
 			//query swi
+			thinking = true;
+			System.out.println(query);
 			issueSWICommand(query);
 
-			//wait until we get a response from
-			try{
-				wait();
-			}catch(InterruptedException e1){}
+			//wait for the result
+			if(thinking) synchronized(LOCK){
+				while(true){
+					try{
+						LOCK.wait();
+						break;						
+					}catch(InterruptedException e){
+						e.printStackTrace();
+					}
+				}				
+			}
 			
 			//once the player has been notified of an output from swi, wait until swiOutput isn't being used, and get the result.
 			synchronized(swiOutput){
-				//we don't need extra outputs, so just end the query at one result.
-				issueSWICommand(".");
-				
 				//check if for some reason the output stack is empty
 				if(swiOutput.empty()){
 					return null;
 				}else{
 					//get the result and discard anything else that may 
 					String result = swiOutput.pop();
+
+					if(result.trim().length()==0) return null;
+					
 					swiOutput.clear();
 					
 					return result;
 				}
-			}			
-			
+			}
 		}
 
+		/**
+		 * Runs a Prolog query in this object's SWI process
+		 * 
+		 * @param query
+		 */
 		private void issueSWICommand(String query){
 			try{
 				swiInput.write(query+"\n");
@@ -200,13 +248,22 @@ public abstract class Player {
 		}
 		
 		@Override
-		protected void finalize() throws Throwable{
+		protected void finalize(){
 			running  = false;
 			//try killing normally
 			issueSWICommand("halt.");
 			
-			swiInput.close();
+			try{
+				swiInput.close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
 			swi.destroyForcibly();
+		}
+
+		@Override
+		public void destroy(){
+			finalize();
 		}
 		
 	}

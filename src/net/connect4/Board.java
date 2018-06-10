@@ -121,6 +121,7 @@ public final class Board {
 				if(j<board[i].length-1) s+=", ";
 			}
 			s+="]";
+			if(i<board.length-1) s+=", ";
 		}
 		s+="]";
 		return s;
