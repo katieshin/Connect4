@@ -7,10 +7,17 @@ name("Joshua", "Smith", "jas790").
 
 % Player List
 playerList([a, b]).
-otherPlayer(Player, OtherPlayer) :-
+otherPlayer(Player, Opponent) :-
 	playerList(List),
-	member(OtherPlayer, List),
-	OtherPlayer \= Player.
+	member(Opponent, List),
+	Opponent \= Player.
+index(0).
+index(1).
+index(2).
+index(3).
+index(4).
+index(5).
+index(6).
 
 
 % addPieceToColumn(+Column, +Player, -OutputColumn)
@@ -72,6 +79,25 @@ checkWin(Board, Index, Player) :-
 	Index2 is Index + 1, Index2 < 7,
 	checkWin(Board, Index2, Player).
 
+opponentWin(Board, Player) :-
+	otherPlayer(Player, Opponent),
+	checkWin(Board, 0, Opponent).
+
 
 % canForceWin(+Board, ?ColumnNumber)
-
+canForceWin(Board, CNum, Player, Result) :-
+	checkWin(Board, 0, Player),
+	Result = true.
+canForceWin(Board, CNum, Player, Result) :-
+	\+isBoardFull(Board),
+	addPiece(Board, CNum, Player, ResultBoard),
+	checkWin(ResultBoard, 0, Player),
+	Result = true.
+canForceWin(Board, CNum, Player, Result) :-
+	\+isBoardFull(Board),
+	addPiece(Board, CNum, Player, ResultBoard),
+	index(NewCNum), otherPlayer(Player, Opponent),
+	addPiece(ResultBoard, NewCNum, Opponent, ResultBoard2),
+	\+opponentWin(ResultBoard2, Player),
+	index(NewCNum2),
+	canForceWin(ResultBoard2, NewCNum2, Player, Result).
