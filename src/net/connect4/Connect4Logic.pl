@@ -40,7 +40,6 @@ otherPlayer(Player, Opponent) :-
 
 
 % addPieceToColumn(+Column, +Player, -OutputColumn)
-addPieceToColumn([], _, []).
 addPieceToColumn([E|C], Player, [E2|OC]) :-
 	E = 0, E2 = Player, C=OC.
 addPieceToColumn([E|C], Player, [E2|OC]) :-
@@ -116,16 +115,16 @@ opponentWin(Board, Player) :-
 
 % canForceWin(+Board, ?ColumnNumber)
 canForceWin(Board, CNum, Player) :-
-	checkWin(Board, Player).
-canForceWin(Board, CNum, Player) :-
-	\+isBoardFull(Board),
+	index(CNum),
 	addPiece(Board, CNum, Player, ResultBoard),
 	checkWin(ResultBoard, Player).
 canForceWin(Board, CNum, Player) :-
-	\+isBoardFull(Board),
+	format("~w\n", [Board]),	
+	index(CNum),
 	addPiece(Board, CNum, Player, ResultBoard),
-	index(NewCNum), otherPlayer(Player, Opponent),
-	addPiece(ResultBoard, NewCNum, Opponent, ResultBoard2),
-	\+opponentWin(ResultBoard2, Player),
-	index(NewCNum2),
-	canForceWin(ResultBoard2, NewCNum2, Player).
+	forall(index(CNum2), helper(ResultBoard, CNum2, Player)).
+
+helper(ResultBoard, CNum2, Player) :-	
+	otherPlayer(Player, Opponent), addPiece(ResultBoard, CNum2, Opponent, RB2), \+ checkWin(RB2, Opponent), canForceWin(RB2, _, Player).
+
+
