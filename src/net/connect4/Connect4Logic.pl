@@ -24,7 +24,7 @@ row(5).
 emptyBoard([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0,0,0,0,0]]).
 
 % Player List
-playerList(["*", "#"]).
+playerList([a, v]).
 otherPlayer(Player, Opponent) :-
 	playerList(List),
 	member(Opponent, List),
@@ -105,31 +105,31 @@ getKeys([[X, _] | R1], [X | R2]) :- getKeys(R1, R2).
 
 % column should start at 0 to check all columns and rows
 % checkWin(+Board, +Player)
-checkWin(Board, Player) :-
-	element(X, Y, Board, Player), checkStreak(X, Y, 4, Board, Player).
+checkWin(Board, Player) :- checkStreak(_, _, 4, Board, Player).
 
 :- use_module(library(tabling)).
 :- table canForceWin/3.
 
 % canForceWin(+Board, ?ColumnNumber, +Player)
-canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board), !.
 canForceWin(Board, CNum, Player) :-
 	format("~w\n", [Board]),
 	searchOrder(Board, Player, L),
-	member(CNum, L),
+	%format("~w\n", [L]),
+	(L=[] ; 
+	(member(CNum, L),
 	addPiece(Board, CNum, Player, ResultBoard),
-	madeOptimumMove(ResultBoard, Player), !.
+	madeOptimumMove(ResultBoard, Player))).
 
-madeOptimumMove(RB, Player) :- checkWin(RB, Player), !.
+madeOptimumMove(RB, Player) :- checkWin(RB, Player).
 madeOptimumMove(RB, Player) :- 
-	\+canOpponentImmediatelyWin(RB, Player), 
-	otherPlayer(Player, Opponent), searchOrder(RB, Opponent, L), forall(member(CNum, L), canBeatOpponent(RB, CNum, Player)).
+	\+canOpponentImmediatelyWin(RB, Player),
+	otherPlayer(Player, Opponent), searchOrder(RB, Opponent, L), (L=[] ; forall(member(CNum, L), canBeatOpponent(RB, CNum, Player))).
 
 canOpponentImmediatelyWin(RB, Player) :- 
 	column(CNum), otherPlayer(Player, Opponent), addPiece(RB, CNum, Opponent, RB2), checkWin(RB2, Opponent).
 
-canBeatOpponent(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C), !.
+canBeatOpponent(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C).
 canBeatOpponent(ResultBoard, CNum2, Player) :-	
-	otherPlayer(Player, Opponent), addPiece(ResultBoard, CNum2, Opponent, RB2), \+ checkWin(RB2, Opponent), canForceWin(RB2, _, Player).
+	otherPlayer(Player, Opponent), addPiece(ResultBoard, CNum2, Opponent, RB2), canForceWin(RB2, _, Player).
 
 
