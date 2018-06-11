@@ -21,24 +21,6 @@ row(3).
 row(4).
 row(5).
 
-
-diag1Col(0).
-diag1Col(1).
-diag1Col(2).
-diag1Col(3).
-diag1Row(0).
-diag1Row(1).
-diag1Row(2).
-
-diag2Col(3).
-diag2Col(4).
-diag2Col(5).
-diag2Col(6).
-diag2Row(0).
-diag2Row(1).
-diag2Row(2).
-
-
 emptyBoard([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0,0,0,0,0]]).
 
 % Player List
@@ -107,26 +89,38 @@ checkStreak(X, Y, Streak, Board, Player) :-
 	horiz(X, Y, Streak, Board, Player) ; 
 	vert(X, Y, Streak, Board, Player)).
 
-countThreeInARow(Board, Player, N) :- setof(P, checkStreak(P,3,Board,Player), S), length(S, N).
+countNInARow(Board, Player, N, M) :- setof(P, checkStreak(P,N,Board,Player), S), length(S, M).
+countNInARow(Board, Player, N, 0) :- \+ setof(P, checkStreak(P,N,Board,Player), _).
 
+searchOrder(Board, Player, L) :- 
+	setof([X, N], countOpportunities(Board, X, Player, N), Columns), sort(2, @>=, Columns, Sorted), getKeys(Sorted, L).
+
+countOpportunities(Board, CNum, Player, 999999999) :- 
+	column(CNum), addPiece(Board, CNum, Player, RB), checkWin(RB, Player).
+countOpportunities(Board, CNum, Player, N) :- 
+	column(CNum), addPiece(Board, CNum, Player, RB), countNInARow(RB, Player, 3, N).
+
+getKeys([], []).
+getKeys([[X, _] | R1], [X | R2]) :- getKeys(R1, R2).
 
 % column should start at 0 to check all columns and rows
 % checkWin(+Board, +Player)
 checkWin(Board, Player) :-
 	element(X, Y, Board, Player), checkStreak(X, Y, 4, Board, Player).
 
+:- use_module(library(tabling)).
+:- table canForceWin/3.
 
 % canForceWin(+Board, ?ColumnNumber, +Player)
-canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board).
+%canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board).
 canForceWin(Board, CNum, Player) :-
-	column(CNum),
+%	format("~w\n", [Board]),
+	searchOrder(Board, Player, L),
+	member(CNum, L),
 	addPiece(Board, CNum, Player, ResultBoard),
-	checkWin(ResultBoard, Player).
-canForceWin(Board, CNum, Player) :-
-	format("~w\n", [Board]),	
-	column(CNum),
-	addPiece(Board, CNum, Player, ResultBoard),
-	forall(column(CNum2), helper(ResultBoard, CNum2, Player)).
+	(checkWin(ResultBoard, Player) ; 
+	forall(column(CNum2), helper(ResultBoard, CNum2, Player))),
+	assert(canForceWin(Board, CNum, Player)).
 
 helper(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C).
 helper(ResultBoard, CNum2, Player) :-	
