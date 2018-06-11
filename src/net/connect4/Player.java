@@ -164,7 +164,7 @@ public abstract class Player {
 		public int pickColumnToPlay(Board gameState){
 			//query swi to ask which column the AI should play in in order to force a win
 			System.out.println(name + " is thinking...");
-			String response = querySWI("canForceWin("+gameState.toPrologList()+", C).");
+			String response = querySWI("canForceWin("+gameState.toPrologList()+", C, \""+token+"\").");
 			
 			if(response == null || response.contains("true") || response.contains("yes")){
 				throw new RuntimeException("Something went wrong. No or invalid output from swipl.");

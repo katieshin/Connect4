@@ -32,7 +32,7 @@ diag2Row(2).
 
 
 % Player List
-playerList([a, b]).
+playerList(["*", "#"]).
 otherPlayer(Player, Opponent) :-
 	playerList(List),
 	member(Opponent, List),
