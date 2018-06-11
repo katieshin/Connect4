@@ -8,9 +8,11 @@ package net.connect4;
  */
 public final class Board {
 
-	private char[][] board;
+	private final char[][] board;
+	private final int streakGoal;
 
-	public Board(int width, int height){
+	public Board(int width, int height, int streakGoal){
+		this.streakGoal = streakGoal;
 		board = new char[width][height];
 		for(int i=0; i<width; i++){
 			for(int j=0; j<height; j++){
@@ -53,42 +55,42 @@ public final class Board {
 	 * @return the character of the token of the winner or null if there isn't one.
 	 */
 	public Character getWinner(){
-		for(int i=0; i<width()-4; i++){
+		for(int i=0; i<width(); i++){
 			for(int j=0; j<height(); j++){
 				if(board[i][j]==' ') continue;
 				char test = board[i][j];
 				int count = 0;
 				
 				//check vertically
-				for(int k=j; k<j+4 && k<height(); k++){
+				for(int k=j; k<j+streakGoal && k<height(); k++){
 					if(board[i][k]==test) count++;
 				}
 				
-				if(count>=4) return test;
+				if(count>=streakGoal) return test;
 				count = 0;
 				
 				//check horizontally
-				for(int k=i; k<i+4 && k<width(); k++){
+				for(int k=i; k<i+streakGoal && k<width(); k++){
 					if(board[k][j]==test) count++;
 				}
 				
-				if(count>=4) return test;
+				if(count>=streakGoal) return test;
 				count = 0;
 				
 				//check up-diagonally
-				for(int k=0; k<4 && i+k<width() && j+k<height(); k++){
+				for(int k=0; k<streakGoal && i+k<width() && j+k<height(); k++){
 					if(board[i+k][j+k]==test) count++;
 				}
 				
-				if(count>=4) return test;
+				if(count>=streakGoal) return test;
 				count = 0;
 				
 				//check up-diagonally
-				for(int k=0; k<4 && i+k<width() && j-k>=0; k++){
+				for(int k=0; k<streakGoal && i+k<width() && j-k>=0; k++){
 					if(board[i+k][j-k]==test) count++;
 				}
 				
-				if(count>=4) return test;
+				if(count>=streakGoal) return test;
 				
 			}
 		}
@@ -117,7 +119,7 @@ public final class Board {
 		for(int i=0; i<board.length; i++){
 			s+="[";
 			for(int j=0; j<board[i].length; j++){
-				s+= board[i][j]==' ' ? "0" : "\""+board[i][j]+"\"";
+				s+= board[i][j]==' ' ? "0" : board[i][j];
 				if(j<board[i].length-1) s+=", ";
 			}
 			s+="]";

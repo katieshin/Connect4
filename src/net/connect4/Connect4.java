@@ -12,7 +12,8 @@ public class Connect4 {
 	public static void main(String[] args) throws IOException, InterruptedException{
 		
 		//Stores the game's instance
-		Board board = new Board(6, 7);
+		Board board = new Board(5, 6, 3);
+		
 		Player[] players = new Player[2];
 		
 		Scanner input = new Scanner(System.in);
@@ -26,11 +27,11 @@ public class Connect4 {
 				if(response.equalsIgnoreCase("human") || response.equalsIgnoreCase("h")){
 					System.out.print("Please enter your name:");
 					String name = input.nextLine();
-					players[i] = new Player.HumanPlayer(name==null || name.equals("") ? "player #"+(i+1) : name, i==0?'*':i==1?'#':(""+i).charAt(0));
+					players[i] = new Player.HumanPlayer(name==null || name.equals("") ? "player #"+(i+1) : name, i==0?'a':i==1?'b':(""+i).charAt(0));
 					break;
 				}else if(response.equalsIgnoreCase("AI")){
 					String name = numAI==0 ? "God-Like AI of DOOM" : numAI==1 ? "God-Like AI of DISPAIR" : "God-Like AI #"+(numAI+1);
-					players[i] = new Player.GodlikePrologAIOfDoom(name, i==0?'*':i==1?'#':(""+i).charAt(0));
+					players[i] = new Player.GodlikePrologAIOfDoom(name, i==0?'a':i==1?'b':(""+i).charAt(0));
 					numAI++;
 					break;
 				}else{

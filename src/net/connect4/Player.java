@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -162,18 +163,24 @@ public abstract class Player {
 
 		@Override
 		public int pickColumnToPlay(Board gameState){
+			
+			/*querySWI("retractall(column(_)).");
+			querySWI("retractall(row(_)).");
+			querySWI("retractall((_)).");*/
+			
 			//query swi to ask which column the AI should play in in order to force a win
 			System.out.println(name + " is thinking...");
-			String response = querySWI("canForceWin("+gameState.toPrologList()+", C, \""+token+"\").");
+			String response = querySWI("canForceWin("+gameState.toPrologList()+", C, "+token+").");
 			
 			if(response == null || response.contains("true") || response.contains("yes")){
 				throw new RuntimeException("Something went wrong. No or invalid output from swipl.");
 			}else{				
 				//check if swi found that there is no way to win
 				if(response.contains("false") || response.contains("no")) {
-					System.out.println("\"It seems seems that the only winning move is to not play.\"");
-					System.out.println("You must either be a living god or a Ðïr†¥ Hå¢kêr (or our prolog script is broken :'( ).");
-					return -1;
+//					System.out.println("\"It seems seems that the only winning move is to not play.\"");
+					System.out.println("Seems the AI cannot force a win");
+//					System.out.println("You must either be a living god or a Ðïr†¥ Hå¢kêr (or our prolog script is broken :'( ).");
+					return (new Random()).nextInt(gameState.width());
 				}else{
 					//try to parse swi's column output
 					try{
@@ -198,7 +205,7 @@ public abstract class Player {
 		private String querySWI(String query){
 			//query swi
 			thinking = true;
-			System.out.println(query);
+//			System.out.println(query);
 			issueSWICommand(query);
 
 			//wait for the result
