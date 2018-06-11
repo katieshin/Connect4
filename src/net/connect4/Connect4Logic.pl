@@ -93,7 +93,7 @@ countNInARow(Board, Player, N, M) :- setof(P, checkStreak(P,N,Board,Player), S),
 countNInARow(Board, Player, N, 0) :- \+ setof(P, checkStreak(P,N,Board,Player), _).
 
 searchOrder(Board, Player, L) :- 
-	setof([X, N], countOpportunities(Board, X, Player, N), Columns), sort(2, @>=, Columns, Sorted), getKeys(Sorted, L).
+	findall([X, N], countOpportunities(Board, X, Player, N), Columns), sort(2, @>=, Columns, Sorted), getKeys(Sorted, L).
 
 countOpportunities(Board, CNum, Player, 999999999) :- 
 	column(CNum), addPiece(Board, CNum, Player, RB), checkWin(RB, Player).
@@ -112,18 +112,24 @@ checkWin(Board, Player) :-
 :- table canForceWin/3.
 
 % canForceWin(+Board, ?ColumnNumber, +Player)
-%canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board).
+canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board), !.
 canForceWin(Board, CNum, Player) :-
-%	format("~w\n", [Board]),
+	format("~w\n", [Board]),
 	searchOrder(Board, Player, L),
 	member(CNum, L),
 	addPiece(Board, CNum, Player, ResultBoard),
-	(checkWin(ResultBoard, Player) ; 
-	forall(column(CNum2), helper(ResultBoard, CNum2, Player))),
-	assert(canForceWin(Board, CNum, Player)).
+	madeOptimumMove(ResultBoard, Player), !.
 
-helper(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C).
-helper(ResultBoard, CNum2, Player) :-	
+madeOptimumMove(RB, Player) :- checkWin(RB, Player), !.
+madeOptimumMove(RB, Player) :- 
+	\+canOpponentImmediatelyWin(RB, Player), 
+	otherPlayer(Player, Opponent), searchOrder(RB, Opponent, L), forall(member(CNum, L), canBeatOpponent(RB, CNum, Player)).
+
+canOpponentImmediatelyWin(RB, Player) :- 
+	column(CNum), otherPlayer(Player, Opponent), addPiece(RB, CNum, Opponent, RB2), checkWin(RB2, Opponent).
+
+canBeatOpponent(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C), !.
+canBeatOpponent(ResultBoard, CNum2, Player) :-	
 	otherPlayer(Player, Opponent), addPiece(ResultBoard, CNum2, Opponent, RB2), \+ checkWin(RB2, Opponent), canForceWin(RB2, _, Player).
 
 
