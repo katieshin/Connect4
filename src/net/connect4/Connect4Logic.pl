@@ -6,12 +6,12 @@ name("Joshua", "Smith", "jas790").
 
 
 % hard-coded values
-index(0).
-index(1).
-index(2).
 index(3).
+index(2).
 index(4).
+index(1).
 index(5).
+index(0).
 index(6).
 
 diag1Col(0).
