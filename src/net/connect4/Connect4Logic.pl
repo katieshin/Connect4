@@ -103,10 +103,10 @@ checkDiagonal(Board, Player) :-
 
 % Index should start at 0 to check all columns and rows
 checkWin(Board, Player) :-
-	index(Index),
+	checkDiagonal(Board, Player) ; 
+	(index(Index),
 	(checkVertical(Board, Index, Player) ;
-	checkHorizontal(Board, Index, Player) ;
-	checkDiagonal(Board, Player)).
+	checkHorizontal(Board, Index, Player))).
 
 opponentWin(Board, Player) :-
 	otherPlayer(Player, Opponent),
@@ -114,6 +114,7 @@ opponentWin(Board, Player) :-
 
 
 % canForceWin(+Board, ?ColumnNumber)
+canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board).
 canForceWin(Board, CNum, Player) :-
 	index(CNum),
 	addPiece(Board, CNum, Player, ResultBoard),
