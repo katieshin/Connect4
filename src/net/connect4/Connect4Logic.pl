@@ -6,13 +6,21 @@ name("Joshua", "Smith", "jas790").
 
 
 % hard-coded values
-index(3).
-index(2).
-index(4).
-index(1).
-index(5).
-index(0).
-index(6).
+column(3).
+column(2).
+column(4).
+column(1).
+column(5).
+column(0).
+column(6).
+
+row(0).
+row(1).
+row(2).
+row(3).
+row(4).
+row(5).
+
 
 diag1Col(0).
 diag1Col(1).
@@ -30,6 +38,8 @@ diag2Row(0).
 diag2Row(1).
 diag2Row(2).
 
+
+emptyBoard([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0,0,0,0,0]]).
 
 % Player List
 playerList(["*", "#"]).
@@ -55,76 +65,70 @@ addPiece([C|Board], CNum, Player, [C|Result]) :-
 	D is CNum-1,
 	addPiece(Board, D, Player, Result).
 
+addPieces(Moves, EndBoard, P1, P2) :- emptyBoard(B), addPieces(B, Moves, EndBoard, P1, P2).
+addPieces(Board, [], Board, _, _).
+addPieces(Board, [C | Moves], EndBoard, P1, P2) :- D is C-1, addPiece(Board, D, P1, Next), addPieces(Next, Moves, EndBoard, P2, P1).
+
+
+element(X, Y, M, E) :- column(X), nth0(X, M, C), row(Y), nth0(Y, C, E).
+
 
 % predicates for checking if any player has won
 sublist(Sublist, List) :-
 	append([_, Sublist, _], List).
 
-diag1(Board, Player) :-
-	diag1Col(CNum1), diag1Row(RNum1),
-	CNum2 is CNum1 + 1, CNum3 is CNum1 + 2, CNum4 is CNum1 + 3,
-	RNum2 is RNum1 + 1, RNum3 is RNum1 + 2, RNum4 is RNum1 + 3,
-	nth0(CNum1, Board, Col1),
-	nth0(CNum2, Board, Col2),
-	nth0(CNum3, Board, Col3),
-	nth0(CNum4, Board, Col4),
-	nth0(RNum1, Col1, Player),
-	nth0(RNum2, Col2, Player),
-	nth0(RNum3, Col3, Player),
-	nth0(RNum4, Col4, Player).
+diag1(_, _, 0, _, _). 
+diag1(X, Y, Streak, Board, Player) :-
+	element(X, Y, Board, Player), X2 is X+1, Y2 is Y+1, S2 is Streak-1, diag1(X2, Y2, S2, Board, Player).
 
-diag2(Board, Player) :-
-	diag2Col(CNum1), diag2Row(RNum1),
-	CNum2 is CNum1 - 1, CNum3 is CNum1 - 2, CNum4 is CNum1 - 3,
-	RNum2 is RNum1 + 1, RNum3 is RNum1 + 2, RNum4 is RNum1 + 3,
-	nth0(CNum1, Board, Col1),
-	nth0(CNum2, Board, Col2),
-	nth0(CNum3, Board, Col3),
-	nth0(CNum4, Board, Col4),
-	nth0(RNum1, Col1, Player),
-	nth0(RNum2, Col2, Player),
-	nth0(RNum3, Col3, Player),
-	nth0(RNum4, Col4, Player).
+diag2(_, _, 0, _, _). 
+diag2(X, Y, Streak, Board, Player) :-
+	element(X, Y, Board, Player), X2 is X+1, Y2 is Y-1, S2 is Streak-1, diag2(X2, Y2, S2, Board, Player).
 
+horiz(_, _, 0, _, _). 
+horiz(X, Y, Streak, Board, Player) :-
+	element(X, Y, Board, Player), X2 is X+1, Y2 is Y, S2 is Streak-1, horiz(X2, Y2, S2, Board, Player).
+
+vert(_, _, 0, _, _). 
+vert(X, Y, Streak, Board, Player) :-
+	element(X, Y, Board, Player), X2 is X, Y2 is Y+1, S2 is Streak-1, vert(X2, Y2, S2, Board, Player).
+
+% isBoardFull(+Board)
 isBoardFull(Board) :-
 	foreach(member(C, Board), \+member(0, C)).
 
+% checkStreak(?Pos, +Streak, +Board, +Player)
+checkStreak([X, Y], Streak, Board, Player) :- checkStreak(X, Y, Streak, Board, Player).
 
-checkVertical(Board, CNum, Player) :-
-	nth0(CNum, Board, C),
-	sublist([Player, Player, Player, Player], C).
-checkHorizontal(Board, RNum, Player) :-
-	transpose(Board, M), nth0(RNum, M, R),
-	sublist([Player, Player, Player, Player], R).
-checkDiagonal(Board, Player) :-
-	diag1(Board, Player) ;
-	diag2(Board, Player).
+% checkStreak(?X, ?Y, +Streak, +Board, +Player)
+checkStreak(X, Y, Streak, Board, Player) :- 
+	(diag1(X, Y, Streak, Board, Player) ; 
+	diag2(X, Y, Streak, Board, Player) ; 
+	horiz(X, Y, Streak, Board, Player) ; 
+	vert(X, Y, Streak, Board, Player)).
+
+countThreeInARow(Board, Player, N) :- setof(P, checkStreak(P,3,Board,Player), S), length(S, N).
 
 
-% Index should start at 0 to check all columns and rows
+% column should start at 0 to check all columns and rows
+% checkWin(+Board, +Player)
 checkWin(Board, Player) :-
-	checkDiagonal(Board, Player) ; 
-	(index(Index),
-	(checkVertical(Board, Index, Player) ;
-	checkHorizontal(Board, Index, Player))).
-
-opponentWin(Board, Player) :-
-	otherPlayer(Player, Opponent),
-	checkWin(Board, Opponent).
+	element(X, Y, Board, Player), checkStreak(X, Y, 4, Board, Player).
 
 
-% canForceWin(+Board, ?ColumnNumber)
+% canForceWin(+Board, ?ColumnNumber, +Player)
 canForceWin(Board, _, Player) :- otherPlayer(Player, Opponent), \+ checkWin(Board, Opponent), isBoardFull(Board).
 canForceWin(Board, CNum, Player) :-
-	index(CNum),
+	column(CNum),
 	addPiece(Board, CNum, Player, ResultBoard),
 	checkWin(ResultBoard, Player).
 canForceWin(Board, CNum, Player) :-
 	format("~w\n", [Board]),	
-	index(CNum),
+	column(CNum),
 	addPiece(Board, CNum, Player, ResultBoard),
-	forall(index(CNum2), helper(ResultBoard, CNum2, Player)).
+	forall(column(CNum2), helper(ResultBoard, CNum2, Player)).
 
+helper(ResultBoard, CNum2, _) :- nth0(CNum2, ResultBoard, C), \+ member(0, C).
 helper(ResultBoard, CNum2, Player) :-	
 	otherPlayer(Player, Opponent), addPiece(ResultBoard, CNum2, Opponent, RB2), \+ checkWin(RB2, Opponent), canForceWin(RB2, _, Player).
 
