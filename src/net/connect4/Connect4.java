@@ -5,20 +5,28 @@ import java.util.Scanner;
 
 public class Connect4 {
 
+	//it's a little of a kludge, but it works
+	public static String SWIPATH;
+	
 	//So you can't instance the Connect4 class
 	private Connect4(){}
 	
 	
 	public static void main(String[] args) throws IOException, InterruptedException{
 		
+		//get the path to the swi-prolog executable
+		if(args.length>0) 
+			SWIPATH = args[0];
+		else
+			SWIPATH = "swipl";
+		
 		//Stores the game's instance
-		Board board = new Board(5, 6, 3);
+		Board board = new Board(6, 7, 4);
 		
 		Player[] players = new Player[2];
 		
+		//set up the game
 		Scanner input = new Scanner(System.in);
-		
-		
 		for(int i=0, numAI=0; i<players.length; i++){
 			System.out.print("Is player #"+(i+1)+" a human or AI?");
 			String response;
@@ -40,6 +48,7 @@ public class Connect4 {
 			}
 		}
 
+		//loop through each turn
 		int currentPlayer = 0;		
 		while(board.getWinner()==null && !board.full()){
 			System.out.println(board);

@@ -114,13 +114,17 @@ public abstract class Player {
 		private final Thread swiOutputThread;
 		private final Stack<String> swiOutput;
 		
-		private volatile boolean running;
 		private volatile boolean thinking;
 		
 		public GodlikePrologAIOfDoom(String name, char token) throws IOException{
 			super(name, token);
-			running = true;
-			swi = new ProcessBuilder("swipl", "-s", "src/net/connect4/Connect4Logic.pl").start();
+			
+			try{
+				swi = new ProcessBuilder("swipl", "-s", "src/net/connect4/Connect4Logic.pl").start();
+			}catch(Exception e){
+				throw new RuntimeException("Could not initiate a swi-prolog instance", e);
+			}
+			
 			
 			swiInput = new BufferedWriter(new OutputStreamWriter(swi.getOutputStream()));
 			swiOutput = new Stack<String>();
@@ -164,9 +168,7 @@ public abstract class Player {
 		@Override
 		public int pickColumnToPlay(Board gameState){
 			
-			/*querySWI("retractall(column(_)).");
-			querySWI("retractall(row(_)).");
-			querySWI("retractall((_)).");*/
+			loadBoardInformation(gameState);
 			
 			//query swi to ask which column the AI should play in in order to force a win
 			System.out.println(name + " is thinking...");
@@ -177,9 +179,7 @@ public abstract class Player {
 			}else{				
 				//check if swi found that there is no way to win
 				if(response.contains("false") || response.contains("no")) {
-//					System.out.println("\"It seems seems that the only winning move is to not play.\"");
-					System.out.println("Seems the AI cannot force a win");
-//					System.out.println("You must either be a living god or a Ðïr†¥ Hå¢kêr (or our prolog script is broken :'( ).");
+					//since there's no way to win, pick random columns
 					return (new Random()).nextInt(gameState.width());
 				}else{
 					//try to parse swi's column output
@@ -192,6 +192,31 @@ public abstract class Player {
 					}
 				}		
 			}
+			
+			
+		}
+		
+		
+		private void loadBoardInformation(Board board){
+			//remove previous versions if they exist
+			querySWI("retractall(column(_)).");
+			querySWI("retractall(row(_)).");
+			querySWI("retractall(streakGoal(_)).");
+
+			//tell prolog how many rows there are (and the order to search in)
+			for(int i=0; i<board.height(); i++){
+				querySWI("asserta(row("+i+")).");
+			}
+			
+			//tell prolog how many columns there are and the default search order
+			//(note that it enters them in the reverse search order since we're using asserta)
+			for(int i=0; i<board.width(); i++){
+				int c = (i&1)==1 ? board.width()-1-i/2 : i/2;
+				querySWI("asserta(column("+c+")).");
+			}
+			
+			//tell prolog how many in a row is a win
+			querySWI("asserta(streakGoal("+board.streakGoal()+")).");
 			
 			
 		}
@@ -256,7 +281,6 @@ public abstract class Player {
 		
 		@Override
 		protected void finalize(){
-			running  = false;
 			//try killing normally
 			issueSWICommand("halt.");
 			
