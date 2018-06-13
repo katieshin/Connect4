@@ -7,15 +7,15 @@ A prolog implementation of a variation on the MinMax algorithm for a perfect Con
 For all Operating Systems: Install SWI-Prolog and run the jar file. Note that Connect4Logic.pl must be in your current directory or else SWI won't be able to run the AI.
 
 For linux systems, if you can install SWI from a repo and can call swipl,
-'''
+```
 java -jar Connect3.jar
-'''
+```
 With no arguments should work
 
 For everyone else, simply add on the path to your swipl executable file. eg
-'''
+```
 java -jar Connect3.jar "C:\Program Files\swipl\bin\swipl.exe"
-'''
+```
 for Windows
 
 ## Current Issues

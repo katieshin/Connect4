@@ -35,12 +35,12 @@ addPieces(Board, [], Board, _, _).
 addPieces(Board, [C | Moves], EndBoard, P1, P2) :- D is C-1, addPiece(Board, D, P1, Next), addPieces(Next, Moves, EndBoard, P2, P1).
 
 emptyBoard([[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0]]).
+		  [0, 0, 0, 0, 0, 0],
+		  [0, 0, 0, 0, 0, 0],
+		  [0, 0, 0, 0, 0, 0],
+		  [0, 0, 0, 0, 0, 0],
+		  [0, 0, 0, 0, 0, 0],
+		  [0, 0, 0, 0, 0, 0]]).
 */
 
 %% drawBoard and drawRow used for debugging
