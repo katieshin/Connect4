@@ -21,7 +21,7 @@ public class Connect4 {
 			SWIPATH = "swipl";
 		
 		//Stores the game's instance
-		Board board = new Board(6, 7, 4);
+		Board board = new Board(5, 6, 3);
 		
 		Player[] players = new Player[2];
 		
