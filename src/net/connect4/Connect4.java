@@ -15,10 +15,14 @@ public class Connect4 {
 	public static void main(String[] args) throws IOException, InterruptedException{
 		
 		//get the path to the swi-prolog executable
-		if(args.length>0) 
+		if(args.length>0){
 			SWIPATH = args[0];
-		else
+			if(SWIPATH.charAt(0)=='"'){
+				SWIPATH = SWIPATH.substring(1, SWIPATH.length()-2);
+			}
+		}else {
 			SWIPATH = "swipl";
+		}
 		
 		//Stores the game's instance
 		Board board = new Board(5, 6, 3);

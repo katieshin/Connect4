@@ -120,7 +120,7 @@ public abstract class Player {
 			super(name, token);
 			
 			try{
-				swi = new ProcessBuilder("swipl", "-s", "Connect4Logic.pl").start();
+				swi = new ProcessBuilder(Connect4.SWIPATH, "-s", "Connect4Logic.pl").start();
 			}catch(Exception e){
 				e.printStackTrace();
 				throw new RuntimeException("Could not initiate a swi-prolog instance", e);
