@@ -18,7 +18,7 @@ java -jar Connect3.jar "C:\Program Files\swipl\bin\swipl.exe"
 '''
 for Windows
 
-##Current Issues
+## Current Issues
 
 As of right now, not enough optimizations have been implemented to guarantee termination for most computers running default connect4, so the code is set to run a simplified version only requiring 3-in-a-row.
 
