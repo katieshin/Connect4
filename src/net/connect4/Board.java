@@ -29,6 +29,10 @@ public final class Board {
 		return board[0].length;
 	}
 	
+	public int streakGoal(){
+		return streakGoal;
+	}
+	
 	/**
 	 * Adds a piece to the top of a column if it isn't full,
 	 * and returns true if successful.
@@ -48,6 +52,7 @@ public final class Board {
 		
 		return false;
 	}
+	
 	
 	/**
 	 * Determines if a token has 4 in a row and returns the winner
@@ -137,7 +142,16 @@ public final class Board {
 			for(int i=0; i<width(); i++) {
 				s+=board[i][j]+"|";
 			}
-			if(j>0) s+="\n";
+			s+="\n";
+		}
+		s+="=";
+		for(int i=0; i<width(); i++){
+			s+="==";
+		}
+		s+="\n";
+		s+="|";
+		for(int i=0; i<width(); i++){
+			s+=i+"|";
 		}
 		return s;
 	}
