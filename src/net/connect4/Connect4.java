@@ -14,6 +14,10 @@ public class Connect4 {
 	
 	public static void main(String[] args) throws IOException, InterruptedException{
 		
+		new Solver(7, 6, 'a', 'b');
+		
+		System.exit(0);
+		
 		//get the path to the swi-prolog executable
 		if(args.length>0){
 			SWIPATH = args[0];
